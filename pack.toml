@@ -1,0 +1,13 @@
+name = "Jurodedu"
+author = "Formuna"
+version = "2.0.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "63037d9dd160f6296e7e47029efbb850096799f7160012ca3de2e38569cde32e"
+
+[versions]
+fabric = "0.17.2"
+minecraft = "1.20.1"
