@@ -31,25 +31,12 @@ jobs:
           target-path: .
       - name: Unzip packwiz
         run: unzip -o Linux\ 64-bit\ x86.zip
-      - name: Clean up
-        run: rm Linux\ 64-bit\ x86.zip
-      - name: "TEMP: List Directory Contents"
-        run: ls -la
-      # - name: Export to packwiz
-      #   run: |
-      #     chmod +x ./packwiz
-      #     pushd Packwiz/${{ vars.MC_VERSION }}
-      #     ../../packwiz modrinth export -o ../../Jurodedu-${{ github.ref_name }}.mrpack
-      #     popd
-      # - name: Attest mrpack
-      #   id: attest-mrpack
-      #   uses: actions/attest-build-provenance@v2
-      #   with:
-      #     subject-path: Jurodedu-${{ github.ref_name }}.mrpack
-      # - name: Copy and zip attestation
-      #   run: |
-      #     cp ${{ steps.attest-mrpack.outputs.bundle-path }} cosign-bundle.json
-      #     zip cosign-bundle.zip cosign-bundle.json
+      - name: Clean up zip file & make executable
+        run: rm Linux\ 64-bit\ x86.zip && chmod +x ./packwiz
+      # - name: "TEMP: List Directory Contents"
+      #   run: ls -la
+      - name: Export to mrpack
+        run: ./packwiz modrinth export -o Jurodedu-${{ github.ref_name }}.mrpack
       # - name: Publish to Modrinth
       #   uses: Kir-Antipov/mc-publish@v3.3
       #   with:
@@ -62,9 +49,9 @@ jobs:
       #       cosign-bundle.zip
       #     loaders: fabric
       #     game-versions: ${{ vars.MC_VERSION }}
-      # - name: Upload to Github
-      #   uses: Shopify/upload-to-release@v2.0.0
-      #   with:
-      #     name: Jurodedu-${{ github.ref_name }}.mrpack
-      #     path: Jurodedu-${{ github.ref_name }}.mrpack
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to Github
+        uses: Shopify/upload-to-release@v2.0.0
+        with:
+          name: Jurodedu-${{ github.ref_name }}.mrpack
+          path: Jurodedu-${{ github.ref_name }}.mrpack
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
