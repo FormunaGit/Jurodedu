@@ -18,37 +18,34 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
-      # - name: Download packwiz
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: "Linux 64-bit x86"
-      #     github-token: ${{ secrets.GH_PAT }}
-      #     repository: ${{ vars.PACKWIZ_REPO }}
-      #     run-id: ${{ vars.PACKWIZ_RUN_ID }}
-      - uses: "valitydev/action-download-file@v1"
+
+      - name: Download packwiz
+        uses: "valitydev/action-download-file@v1"
         with:
           url: https://nightly.link/packwiz/packwiz/workflows/go/main/Linux%2064-bit%20x86.zip
           target-path: .
+
       - name: Unzip packwiz
         run: unzip -o Linux\ 64-bit\ x86.zip
-      - name: Clean up zip file & make executable
+
+      - name: Remove zip file & make executable
         run: rm Linux\ 64-bit\ x86.zip && chmod +x ./packwiz
-      # - name: "TEMP: List Directory Contents"
-      #   run: ls -la
+
       - name: Export to mrpack
         run: ./packwiz modrinth export -o Jurodedu-${{ github.ref_name }}.mrpack
-      # - name: Publish to Modrinth
-      #   uses: Kir-Antipov/mc-publish@v3.3
-      #   with:
-      #     name: ${{ github.ref_name }} for ${{ vars.MC_VERSION }}
-      #     modrinth-id: 1KVo5zza
-      #     modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-      #     modrinth-unfeature-mode: subset
-      #     files: |
-      #       Jurodedu-${{ github.ref_name }}.mrpack
-      #       cosign-bundle.zip
-      #     loaders: fabric
-      #     game-versions: ${{ vars.MC_VERSION }}
+
+      - name: Publish to Modrinth
+          uses: Kir-Antipov/mc-publish@v3.3
+          with:
+            name: 
+            modrinth-id: bpR2nFes
+            modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+            modrinth-unfeature-mode: subset
+            files: |
+              Jurodedu-${{ github.ref_name }}.mrpack
+            loaders: fabric
+            game-versions: ${{ vars.MC_VERSION }}
+
       - name: Upload to Github
         uses: Shopify/upload-to-release@v2.0.0
         with:

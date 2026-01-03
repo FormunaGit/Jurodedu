@@ -1,12 +1,12 @@
 name = "Jurodedu"
 author = "Formuna"
-version = "2.0.0"
+version = "2.1.0"
 pack-format = "packwiz:1.1.0"
 
 [index]
 file = "index.toml"
 hash-format = "sha256"
-hash = "747f84ed1219ca4ce3c1274cd49b3923c28a2849d47467d1279d0ced94dd2b7c"
+hash = "89a70d6cee8fe2c0b8d0f649f0b802415d70855ccd8c1ca49c9418335c7b1dab"
 
 [versions]
 fabric = "0.17.2"
