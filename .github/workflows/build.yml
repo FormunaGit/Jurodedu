@@ -1,9 +1,10 @@
 # Thank you to @FabulouslyOptimized for this GitHub Workflow!
 name: Automatically publish to Modrinth
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
 jobs:
   publish-to-modrinth:
     if: github.repository_owner == 'FormunaGit'
@@ -35,16 +36,15 @@ jobs:
         run: ./packwiz modrinth export -o Jurodedu-${{ github.ref_name }}.mrpack
 
       - name: Publish to Modrinth
-          uses: Kir-Antipov/mc-publish@v3.3
-          with:
-            name: 
-            modrinth-id: bpR2nFes
-            modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-            modrinth-unfeature-mode: subset
-            files: |
-              Jurodedu-${{ github.ref_name }}.mrpack
-            loaders: fabric
-            game-versions: ${{ vars.MC_VERSION }}
+        uses: "Kir-Antipov/mc-publish@v3.3"
+        with:
+          modrinth-id: bpR2nFes
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-unfeature-mode: subset
+          files: |
+            Jurodedu-${{ github.ref_name }}.mrpack
+          loaders: fabric
+          game-versions: ${{ vars.MC_VERSION }}
 
       - name: Upload to Github
         uses: Shopify/upload-to-release@v2.0.0
