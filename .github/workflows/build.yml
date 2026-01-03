@@ -1,9 +1,10 @@
-# Thank you to @FabulouslyOptimized for this GitHub Workflow!
 name: Automatically publish to Modrinth
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+    paths:
+      - 'pack.toml'
 
 jobs:
   publish-to-modrinth:
@@ -11,44 +12,59 @@ jobs:
     runs-on: ubuntu-24.04
     environment: github-actions
     permissions:
-      id-token: write
-      attestations: write
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          fetch-depth: 2
 
-      - name: Download packwiz
-        uses: "valitydev/action-download-file@v1"
+      - name: Look for version change
+        id: check_version
+        run: |
+          NEW_VER=$(grep -m 1 'version =' pack.toml | cut -d '"' -f 2)
+          OLD_VER=$(git show HEAD~1:pack.toml | grep -m 1 'version =' | cut -d '"' -f 2)
+
+          if [ "$NEW_VER" = "$OLD_VER" ]; then
+            echo "version did not change ($NEW_VER)"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "version changed to $NEW_VER"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "new_tag=v$NEW_VER" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Golang
+        if: steps.check_version.outputs.changed == 'true'
+        uses: actions/setup-go@v5
         with:
-          url: https://nightly.link/packwiz/packwiz/workflows/go/main/Linux%2064-bit%20x86.zip
-          target-path: .
+          go-version: 'stable'
 
-      - name: Unzip packwiz
-        run: unzip -o Linux\ 64-bit\ x86.zip
-
-      - name: Remove zip file & make executable
-        run: rm Linux\ 64-bit\ x86.zip && chmod +x ./packwiz
+      - name: Install packwiz
+        if: steps.check_version.outputs.changed == 'true'
+        run: go install github.com/packwiz/packwiz@latest
 
       - name: Export to mrpack
-        run: ./packwiz modrinth export -o Jurodedu-${{ github.ref_name }}.mrpack
+        if: steps.check_version.outputs.changed == 'true'
+        run: |
+          $(go env GOPATH)/bin/packwiz modrinth export -o Jurodedu-${{ steps.check_version.outputs.new_tag }}.mrpack
+
+      - name: Create GitHub Release
+        if: steps.check_version.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Jurodedu-${{ steps.check_version.outputs.new_tag }}.mrpack
+          tag_name: ${{ steps.check_version.outputs.new_tag }}
+          name: Release ${{ steps.check_version.outputs.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Modrinth
+        if: steps.check_version.outputs.changed == 'true'
         uses: "Kir-Antipov/mc-publish@v3.3"
         with:
           modrinth-id: bpR2nFes
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          modrinth-unfeature-mode: subset
-          files: |
-            Jurodedu-${{ github.ref_name }}.mrpack
+          files: Jurodedu-${{ steps.check_version.outputs.new_tag }}.mrpack
           loaders: fabric
           game-versions: ${{ vars.MC_VERSION }}
-
-      - name: Upload to Github
-        uses: Shopify/upload-to-release@v2.0.0
-        with:
-          name: Jurodedu-${{ github.ref_name }}.mrpack
-          path: Jurodedu-${{ github.ref_name }}.mrpack
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
